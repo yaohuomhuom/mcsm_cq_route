@@ -52,6 +52,7 @@
 [core/Process/BaseMcserver.js](https://github.com/Suwings/MCSManager/blob/master/core/Process/BaseMcserver.js "core/Process/BaseMcserver.js")
 
 [core/Process/ServerCenter.js](https://github.com/Suwings/MCSManager/blob/master/core/Process/ServerCenter.js "core/Process/ServerCenter.js")
+
 开源协议
 -----------
 MIT License
