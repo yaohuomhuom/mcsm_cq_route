@@ -1,6 +1,7 @@
 
 
 基于MCSM与cqhttp-node-sdk的插件路由
+
 [![Status](https://img.shields.io/badge/npm-v6.9.0-blue.svg)](https://www.npmjs.com/)
 [![Status](https://img.shields.io/badge/node-v10.0.0-blue.svg)](https://nodejs.org/en/download/)
 [![Status](https://img.shields.io/badge/License-MIT-red.svg)](https://github.com/Suwings/MCSManager)
@@ -41,13 +42,13 @@
 
 感谢
 -----------
-**[cqhttp-node-sdk](https://github.com/cqmoe/cqhttp-node-sdk "cqhttp-node-sdk")**原码：
+[cqhttp-node-sdk](https://github.com/cqmoe/cqhttp-node-sdk "cqhttp-node-sdk")原码：
 
 [/src/callable.js](https://github.com/cqmoe/cqhttp-node-sdk/blob/master/src/callable.js "/src/callable.js")
 
 [/src/main.js](https://github.com/cqmoe/cqhttp-node-sdk/blob/master/src/main.js "/src/main.js")
 
-**[MCSManager](https://github.com/Suwings/MCSManager "MCSManager")**原码：
+[MCSManager](https://github.com/Suwings/MCSManager "MCSManager")原码：
 
 [core/Process/BaseMcserver.js](https://github.com/Suwings/MCSManager/blob/master/core/Process/BaseMcserver.js "core/Process/BaseMcserver.js")
 
