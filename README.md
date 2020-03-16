@@ -4,6 +4,7 @@
 [![Status](https://img.shields.io/badge/npm-v6.9.0-blue.svg)](https://www.npmjs.com/)
 [![Status](https://img.shields.io/badge/node-v10.0.0-blue.svg)](https://nodejs.org/en/download/)
 [![Status](https://img.shields.io/badge/License-MIT-red.svg)](https://github.com/Suwings/MCSManager)
+
 简介
 -----------
 这是一款MCSM的route插件，通过对cqhttp-node-sdk项目的修改，以实现在MCSM服务器上同cqhttp交互
