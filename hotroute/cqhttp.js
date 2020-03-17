@@ -1,14 +1,24 @@
-const router = require('express')();
 const CQHttp = require('../src/main.js');
 const axios = require("../src/models/axios.js")
 const serverModel = require('../model/ServerModel');
 const bot_set = require("../bot_set.json");
 const bot = new CQHttp(bot_set);
 const db_edit = require('../src/models/file.js');
+const route = require('express')();
 var blacklist = ["sb2yaohuom", "yaohuom2", "yaohuom3"];
 var Commandlist = require("../src/db/db.json");
 var get_name_repx = /\/white ([\S]+)/;
+var set_blacklist_repx = /\/wblacklist ([\S]+)/;
 var time = null;
+const msg_tallk = bot.on('message', async (context) => {
+	var blacklist = context.message.match(set_blacklist_repx);
+	if(blacklist){
+		bot('send_msg', {
+			...context,
+			message: "blacklist"
+		});
+	}
+})
 const msg_cb = bot.on('message', async (context) => {
 	var call;
 	var id = context.message.match(get_name_repx);
@@ -160,4 +170,5 @@ const msg_cb = bot.on('message', async (context) => {
 
 });
 
-module.exports = bot.router;
+bot.route = route.post('/', bot.handle.bind(bot))
+module.exports = bot;

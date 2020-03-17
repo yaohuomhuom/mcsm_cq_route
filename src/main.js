@@ -1,8 +1,6 @@
 'use strict';
 
 const Callable = require('./callable');
-const bodyParser = require('body-parser')
-const route = require('express')();
 const crypto = require('crypto');
 const axios = require('axios');
 const assert = require('http-assert')
@@ -20,7 +18,6 @@ module.exports = class CQHttp extends Callable {
         //this.app = new Koa();
         //this.app.use(bodyParser());
         //this.app.use(route.post('/', this.handle.bind(this)));
-		this.router = route.post('/', this.handle.bind(this))
         this.callbacks = { message: [], event: [], notice: [], request: [] };
     }
 
@@ -40,6 +37,7 @@ module.exports = class CQHttp extends Callable {
         assert(req.body.post_type !== undefined, 400);
 
         let result = {};
+		//console.log("运行路由回调",this.callbacks);
         const callbacks = this.callbacks[req.body.post_type];
         if (callbacks) {
             for (const cb of callbacks) {

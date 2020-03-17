@@ -185,6 +185,66 @@ for (let key in routeList) {
     app.use('/' + name, require('./route/' + name));
 }
 
+//自动装载热路由
+function addhotroute(dir) {
+	var fsdir = dir||"./hotroute/";
+	let hotRoute = fs.readdirSync(fsdir);
+	for (let key in hotRoute) {		
+	    let name = hotRoute[key].replace('.js', '');		
+		if(app._router.stack.find(v =>{return  v.name == "fun_"+name})){continue;}
+		if(app._router.stack.find(v =>{return  name.match(v.regexp)&&v.name!="fun_"+name })){
+			MCSERVER.infoLog('INFO', '热路由插件:'+name+'此路由名已被静态路由注册');
+			continue;
+			}		
+		let new_require = require('./hotroute/' + name);
+		if(!new_require.route){
+			MCSERVER.infoLog('INFO', '热路由插件:'+name+'没有路由对象');
+			continue;
+		}
+		let _fun  = {["fun_"+name](req, res, next){ new_require.route(req, res, next)}};
+		app.use('/' + name,_fun["fun_"+name]);
+		MCSERVER.infoLog('INFO', '热路由插件:'+name+'加载完成');
+	}
+}
+addhotroute();
+//自动监听更新热路由
+var lastUpdateTime = 0;
+(function  hot_route_watch() {
+	fs.watch("./hotroute/", (event, filename)=> {
+	    var diff = Date.now() - lastUpdateTime;
+	    lastUpdateTime = Date.now();
+	    if (diff < 1000) return;
+		let name = filename.replace('.js', '');
+		if(event == "change"){	
+			delete require.cache[require.resolve('./hotroute/'+filename)];
+			//console.log("更新路由回调",require('./hotroute/' + filename).callbacks);
+			let  _fun  = {["fun_"+name](req, res, next){ require('./hotroute/' + filename).route(req, res, next)}};
+			try {				
+				app._router.stack = app._router.stack.map(v => {
+					
+					if(v.name == "fun_"+name){
+						v.handle = _fun["fun_"+name];
+					}
+					return v;
+					});
+				MCSERVER.infoLog('INFO', '热路由插件:'+name+'更新完毕');
+			} catch (e) {
+				console.error('module update failed');
+			}
+		}else if(event == "rename"){
+			if (fs.existsSync('./hotroute/'+filename)){
+				addhotroute("./hotroute/");
+				MCSERVER.infoLog('INFO', '热路由插件:'+name+'添加完毕');
+			}else{				
+				app._router.stack = app._router.stack.filter(v => {return v.name != "fun_"+name});
+				MCSERVER.infoLog('INFO', '热路由插件:'+name+'删除完毕');
+				addhotroute("./hotroute/");
+			};		
+		}
+	  });
+	}
+	)()
+
 process.on("uncaughtException", function (err) {
     //是否出过错误,本变量用于自动化测试
     MCSERVER.allError++;
