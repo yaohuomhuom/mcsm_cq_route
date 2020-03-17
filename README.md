@@ -23,7 +23,7 @@
 	"secret": "qik2de&8yrtNCHLG"
 }
 ```
-3. 安装npm依赖
+3. 安装npm依赖axios和http-assert
 4. 运行MCSM
 5. 将cqhttp的配置文件地址设置为MCSM服务器地址加上"/cqhttp"
 ```javascript
