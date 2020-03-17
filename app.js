@@ -52,6 +52,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
+const fswatch = require('node-watch');
 //gzip压缩
 const compression = require('compression');
 
@@ -210,13 +211,28 @@ addhotroute();
 //自动监听更新热路由
 var lastUpdateTime = 0;
 (function  hot_route_watch() {
-	fs.watch("./hotroute/", (event, filename)=> {
-	    var diff = Date.now() - lastUpdateTime;
+	fswatch("./hotroute/", (event, dirfilename)=> {
+	    let diff = Date.now() - lastUpdateTime;
 	    lastUpdateTime = Date.now();
 	    if (diff < 1000) return;
+		let dirlist = dirfilename.split("\\");
+		filename = dirlist[dirlist.length-1]
 		let name = filename.replace('.js', '');
-		if(event == "change"){	
-			delete require.cache[require.resolve('./hotroute/'+filename)];
+		let path = require("path");
+		if(event == "update"){		
+			let require_cache = require.cache[path.join(__dirname,'./hotroute/'+filename)];
+			if(!require_cache){
+				let new_require = require('./hotroute/' + name);
+				if(!new_require.route){
+					MCSERVER.infoLog('INFO', '热路由插件:'+name+'没有路由对象');
+					return;
+				}
+				let _fun  = {["fun_"+name](req, res, next){ new_require.route(req, res, next)}};
+				app.use('/' + name,_fun["fun_"+name]);
+				MCSERVER.infoLog('INFO', '热路由插件:'+name+'加载完成');
+				return;
+			}
+			delete require.cache[path.join(__dirname,'./hotroute/'+filename)];
 			//console.log("更新路由回调",require('./hotroute/' + filename).callbacks);
 			let  _fun  = {["fun_"+name](req, res, next){ require('./hotroute/' + filename).route(req, res, next)}};
 			try {				
@@ -229,17 +245,14 @@ var lastUpdateTime = 0;
 					});
 				MCSERVER.infoLog('INFO', '热路由插件:'+name+'更新完毕');
 			} catch (e) {
-				console.error('module update failed');
+				console.error('module update failed:'+e);
 			}
-		}else if(event == "rename"){
-			if (fs.existsSync('./hotroute/'+filename)){
-				addhotroute("./hotroute/");
-				MCSERVER.infoLog('INFO', '热路由插件:'+name+'添加完毕');
-			}else{				
+		}else if(event == "remove"){
+				
 				app._router.stack = app._router.stack.filter(v => {return v.name != "fun_"+name});
-				MCSERVER.infoLog('INFO', '热路由插件:'+name+'删除完毕');
-				addhotroute("./hotroute/");
-			};		
+				
+				delete require.cache[path.join(__dirname,'./hotroute/'+filename)];
+				MCSERVER.infoLog('INFO', '热路由插件:'+name+'删除完毕');							
 		}
 	  });
 	}
