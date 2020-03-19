@@ -3,18 +3,20 @@
 const Callable = require('./callable');
 const crypto = require('crypto');
 const axios = require('axios');
-const assert = require('http-assert')
+const assert = require('http-assert');
 
 module.exports = class CQHttp extends Callable {
-    constructor({ apiRoot, accessToken, secret }) {
+    constructor({ post_url, access_token, secret,group_id,user_id }) {
         super('__call__');
-        if (apiRoot) {
+        if (post_url) {
             const headers = { 'Content-Type': 'application/json' }
-            if (accessToken) headers['Authorization'] = `Token ${accessToken}`;
-            this.apiClient = axios.create({ baseURL: apiRoot, headers: headers });
+            if (access_token) headers['Authorization'] = `Token ${access_token}`;
+            this.apiClient = axios.create({ baseURL: post_url, headers: headers });
         }
 
         this.secret = secret;
+		this.group_id = group_id||0;
+		this.user_id = user_id||0;
         //this.app = new Koa();
         //this.app.use(bodyParser());
         //this.app.use(route.post('/', this.handle.bind(this)));
@@ -33,10 +35,11 @@ module.exports = class CQHttp extends Callable {
 			//console.log(req.headers['x-signature']);
             assert(req.headers['x-signature'] === `sha1=${sig}`, 403);
         }
-
+		
         assert(req.body.post_type !== undefined, 400);
 
         let result = {};
+		
 		//console.log("运行路由回调",this.callbacks);
         const callbacks = this.callbacks[req.body.post_type];
         if (callbacks) {

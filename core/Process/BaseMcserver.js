@@ -357,7 +357,8 @@ class ServerProcess extends EventEmitter {
             this.send('stop');
             this.send('end');
             this.send('exit');
-
+			this._done = false;
+			
             // 开始计时重启
             let timeCount = 0;
             let timesCan = setInterval(() => {
@@ -391,7 +392,8 @@ class ServerProcess extends EventEmitter {
     stop() {
         this._run = false;
         this._loading = false;
-
+		this._done = false;
+		
         this.send('stop');
         this.send('end');
         this.send('exit');
@@ -402,6 +404,7 @@ class ServerProcess extends EventEmitter {
         if (this._run) {
             this.process.kill('SIGKILL');
             this._run = false;
+			this._done = false;
             return true;
         }
         return false;

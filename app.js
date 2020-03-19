@@ -247,10 +247,8 @@ var lastUpdateTime = 0;
 			} catch (e) {
 				console.error('module update failed:'+e);
 			}
-		}else if(event == "remove"){
-				
-				app._router.stack = app._router.stack.filter(v => {return v.name != "fun_"+name});
-				
+		}else if(event == "remove"){				
+				app._router.stack = app._router.stack.filter(v => {return v.name != "fun_"+name});				
 				delete require.cache[path.join(__dirname,'./hotroute/'+filename)];
 				MCSERVER.infoLog('INFO', '热路由插件:'+name+'删除完毕');							
 		}
