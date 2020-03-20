@@ -190,7 +190,8 @@ for (let key in routeList) {
 function addhotroute(dir) {
 	var fsdir = dir||"./hotroute/";
 	let hotRoute = fs.readdirSync(fsdir);
-	for (let key in hotRoute) {		
+	for (let key in hotRoute) {
+		if(hotRoute[key].substr(-3,3)!=".js"){continue;}		
 	    let name = hotRoute[key].replace('.js', '');		
 		if(app._router.stack.find(v =>{return  v.name == "fun_"+name})){continue;}
 		if(app._router.stack.find(v =>{return  name.match(v.regexp)&&v.name!="fun_"+name })){
@@ -212,12 +213,13 @@ addhotroute();
 var lastUpdateTime = 0;
 (function  hot_route_watch() {
 	fswatch("./hotroute/", (event, dirfilename)=> {
+		if(dirfilename.substr(-3,3)!=".js"){return;}
 	    let diff = Date.now() - lastUpdateTime;
 	    lastUpdateTime = Date.now();
 	    if (diff < 1000) return;
-		let dirlist = dirfilename.split("\\");
-		filename = dirlist[dirlist.length-1]
-		let name = filename.replace('.js', '');
+		filename = dirfilename.match(/([^\.\/\\]+)\.js/g);
+		if(!filename){return;}
+		let name = filename[0].replace('.js', '');
 		let path = require("path");
 		if(event == "update"){		
 			let require_cache = require.cache[path.join(__dirname,'./hotroute/'+filename)];
