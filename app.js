@@ -218,45 +218,60 @@ addhotroute();
 var lastUpdateTime = 0;
 (function  hot_route_watch() {
 	fswatch("./hotroute/", (event, dirfilename)=> {
+		
+		let path = require("path");
+		let extname = path.extname(dirfilename);
+		MCSERVER.infoLog('INFO', '热路由插件 extname:'+extname);
+		let basename = path.basename(dirfilename);
+		MCSERVER.infoLog('INFO', '热路由插件 basename:'+basename);
+		let name = path.basename(dirfilename,".js");
+		MCSERVER.infoLog('INFO', '热路由插件 name:'+name);
+		if(extname!=".js"){
+			MCSERVER.infoLog('INFO', '热路由插件:'+dirfilename+" "+event+'暂时不支持');
+			return;
+		}
+		if(name!="cqhttp"){
+			MCSERVER.infoLog('INFO', '热路由插件 : 为服务器稳定,关闭除cqhttp以外的热更新');
+			return;
+		}
 		try{
-			if(dirfilename.substr(-3,3)!=".js"){
-						MCSERVER.infoLog('INFO', '热路由插件:'+dirfilename+'丢弃');
-						return;
-					}
 			let diff = Date.now() - lastUpdateTime;
 			lastUpdateTime = Date.now();
-			if (diff < 1000) return;
-			filename = dirfilename.match(/([^\.\/\\]+)\.js/g);
-			if(!filename){return;}
-			let name = filename[0].replace('.js', '');
-			let path = require("path");
-			if(event == "update"){		
-				let require_cache = require.cache[path.join(__dirname,'./hotroute/'+filename)];
-				if(!require_cache){
-					let new_require = require('./hotroute/' + name);
-					if(!new_require.route){
-						MCSERVER.infoLog('INFO', '热路由插件:'+name+'没有路由对象');
-						return;
-					}
-					let _fun  = {["fun_"+name](req, res, next){ new_require.route(req, res, next)}};
-					app.use('/' + name,_fun["fun_"+name]);
-					MCSERVER.infoLog('INFO', '热路由插件:'+name+'加载完成');
+			if (diff < 1000) return;			
+			if(event == "update"){
+				delete require.cache[path.join(__dirname,'./hotroute/'+basename)];
+				//console.log("更新路由回调",require('./hotroute/' + filename).callbacks);
+				let new_require_update = require('./hotroute/' + name);
+				if(!new_require_update.route){
+					MCSERVER.infoLog('INFO', '热路由插件:'+name+'没有路由对象');
 					return;
 				}
-				delete require.cache[path.join(__dirname,'./hotroute/'+filename)];
-				//console.log("更新路由回调",require('./hotroute/' + filename).callbacks);
-				let  _fun  = {["fun_"+name](req, res, next){ require('./hotroute/' + filename).route(req, res, next)}};						
+				let  _fun  = {["fun_"+name](req, res, next){ require('./hotroute/' + name).route(req, res, next)}};		
+				var  undone = 0;
 					app._router.stack = app._router.stack.map(v => {
 						
 						if(v.name == "fun_"+name){
 							v.handle = _fun["fun_"+name];
+							undone++;
 						}
 						return v;
 						});
+					if(!undone){
+						MCSERVER.infoLog('INFO', '热路由插件:'+name+'不存在对应函数，添加新路由');
+						let new_require_add = require('./hotroute/' + name);
+						if(!new_require_add.route){
+							MCSERVER.infoLog('INFO', '热路由插件:'+name+'没有路由对象');
+							return;
+						}
+						let _fun  = {["fun_"+name](req, res, next){ new_require_add.route(req, res, next)}};
+						app.use('/' + name,_fun["fun_"+name]);
+						MCSERVER.infoLog('INFO', '热路由插件:'+name+'加载完成');
+						return;
+					}
 					MCSERVER.infoLog('INFO', '热路由插件:'+name+'更新完毕');				
 			}else if(event == "remove"){				
 					app._router.stack = app._router.stack.filter(v => {return v.name != "fun_"+name});				
-					delete require.cache[path.join(__dirname,'./hotroute/'+filename)];
+					delete require.cache[path.join(__dirname,'./hotroute/'+basename)];
 					MCSERVER.infoLog('INFO', '热路由插件:'+name+'删除完毕');							
 			}
 		}catch(e){

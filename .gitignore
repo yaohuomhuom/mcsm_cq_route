@@ -20,3 +20,4 @@ core/logo.txt
 core/procexit.js
 core/tools.js
 core/Process/Mcserver.js
+node_modules/
