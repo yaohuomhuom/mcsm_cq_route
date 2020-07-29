@@ -15,13 +15,19 @@ const msg_run_list_regexp = /\/wrunlist/;
 var time = null;
 
 const qq_acount_linent = async function(req,res,next){
+	//设定机器人权限
 	var qq_acount = db_edit.read("db_qq");
+	//读取数据库
 	var usid = req.body.user_id;var grid = req.body.group_id ;
+	//获取信息来源qq号或群号
 	if(usid == bot.user_id||grid == bot.group_id){
+		//如果是bot主人qq或群主人qq则下一步处理函数
 		next();
 	}else if(~qq_acount.indexOf(usid)||~qq_acount.indexOf(grid)){
+		//如果是在数据库内则下一步处理函数
 		next();
 	}else{
+		//否则，跳过
 		res.send("{}");
 	}
 }
