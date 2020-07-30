@@ -5,6 +5,8 @@ const db_edit = require('../src/models/file.js');
 const route = require('express')();
 var bot_set = db_edit.read("bot_set");
 var bot = new CQHttp(bot_set);
+const UserDataList = require('../src/models/UserDataList.js');
+//置入用户模型
 
 const get_name_repx = /\/whitelist ([\S]+) ([\S]+)/;
 const set_blacklist_repx = /\/wblacklist ([\S]+) ([\S]+)/;
@@ -14,21 +16,32 @@ const set_tallk_regexp = /\/tregexp ([\S]+) ([\S]+)/;
 const msg_run_list_regexp = /\/wrunlist/;
 var time = null;
 
-const qq_acount_linent = async function(req,res,next){
-	//设定机器人权限
+const qq_acount_linent = async function(req, res, next) {
+	var UserData = new UserDataList(db_edit.read("db_user_data"));
+	//获取用户列表对象
 	var qq_acount = db_edit.read("db_qq");
-	//读取数据库
-	var usid = req.body.user_id;var grid = req.body.group_id ;
-	//获取信息来源qq号或群号
-	if(usid == bot.user_id||grid == bot.group_id){
-		//如果是bot主人qq或群主人qq则下一步处理函数
+	//读取qqbot主人qq信息
+	var usid = req.body.user_id;
+	//用户qq号
+	var grid = req.body.group_id;
+	//群qq号
+	var isBan = UserData.isBan(usid);
+	//用户是否被ban
+	if (usid == bot.user_id) {
+		//为bot主人id
 		next();
-	}else if(~qq_acount.indexOf(usid)||~qq_acount.indexOf(grid)){
-		//如果是在数据库内则下一步处理函数
+	} else if (isBan) {
+		//确认被ban
+		res.send();
+		return;
+	} else if (grid == bot.group_id) {
+		//为bot主人群id
 		next();
-	}else{
-		//否则，跳过
-		res.send("{}");
+	} else if (~qq_acount.indexOf(usid) || ~qq_acount.indexOf(grid)) {
+		//为监听列表内的id
+		next();
+	} else {
+		res.send();
 	}
 }
 
