@@ -5,13 +5,18 @@ module.exports = class UserDataList {
 		this.list = data;
 		this.length = data.length
 	}
-	isBan(data){
+	
+	findUser(data){
 		if(!this.list){
 			return false;
 		}
-		
 		var userdata = this.list.find(v=> v.qqid == data)||this.list.find(v=> v.username.toLowerCase() == (typeof data == "string"?data.toLowerCase():false))
-		if(userdata&&userdata.ban){
+		return userdata;
+	}
+	
+	isBan(data){
+		var res = this.findUser(data);
+		if(res&&res.ban){
 			return true;
 		}else{
 			return false;
