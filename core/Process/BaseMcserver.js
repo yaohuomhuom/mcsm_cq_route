@@ -101,9 +101,13 @@ class ServerProcess extends EventEmitter {
         else
             startCommande = this.templateStart(true);
         const startCommandeArray = startCommande.split(" ");
-        // 端口解析
-        const protocol = "tcp";
         let portmap = this.dataModel.dockerConfig.dockerPorts;
+        // 端口解析
+        var agreement = portmap.split("/");
+        var protocol = "tcp"
+        if(agreement.length>=2 && (agreement[1]==="udp" || agreement[1]==="tcp")){
+            protocol = agreement[1];
+        }
         portmap = portmap.split(":");
         if (portmap.length > 2) {
             throw new Error("不支持的多端口操作方法，参数配置端口数量错误。");
@@ -179,8 +183,8 @@ class ServerProcess extends EventEmitter {
             process.stderr = null;
             // 模拟进程杀死功能
             process.kill = (() => {
-                docker.getContainer(auxContainer.id).kill().then(() => {
-                    docker.getContainer(auxContainer.id).remove().then(() => {
+                auxContainer.kill().then(() => {
+                    auxContainer.remove().then(() => {
                         MCSERVER.log('实例', '[', self.dataModel.name, ']', '容器已强制移除');
                     });
                 });
@@ -189,6 +193,7 @@ class ServerProcess extends EventEmitter {
             auxContainer.wait(() => {
                 self.emit('exit', 0);
                 self.stop();
+                auxContainer.remove();
             });
             // 容器流错误事件传递
             stream.on('error', (err) => {
@@ -201,6 +206,7 @@ class ServerProcess extends EventEmitter {
             if (!process.pid) {
                 MCSERVER.error('服务端进程启动失败，建议检查启动命令与参数是否正确');
                 self.stop();
+                auxContainer.remove();
                 throw new Error('服务端进程启动失败，建议检查启动命令与参数是否正确');
             }
 
@@ -341,10 +347,10 @@ class ServerProcess extends EventEmitter {
     send(command) {
         if (this._run) {
             if (this.process.dockerContainer != null) {
-				this.process.stdin.write(iconv.encode(command, this.dataModel.ie) + '\n');
+                this.process.stdin.write(iconv.encode(command, this.dataModel.ie) + '\n');
             } else {
-               this.process.stdin.write(iconv.encode(command, this.dataModel.ie));
-               this.process.stdin.write('\n');
+                this.process.stdin.write(iconv.encode(command, this.dataModel.ie));
+                this.process.stdin.write('\n');
             }
             return true;
         }
