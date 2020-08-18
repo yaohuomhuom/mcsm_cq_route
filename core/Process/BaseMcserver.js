@@ -328,6 +328,12 @@ class ServerProcess extends EventEmitter {
 					MCSERVER.log('服务器 [' + this.dataModel.name + '] Done!');
 					}, 30000);
 			}
+			if(iconv.decode(data, this.dataModel.oe).match(/Listening on \/0.0.0.0:/)){
+				setTimeout(() => {
+					this._done = true;
+					MCSERVER.log('服务器 [' + this.dataModel.name + '] Done!');
+					}, 30000);
+			}
 			});
         this.process.stderr.on('data', (data) => { this.emit('console', iconv.decode(data, this.dataModel.oe));});
 		this.process.on('exit', (code) => {
