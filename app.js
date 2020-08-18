@@ -97,6 +97,7 @@ MCSERVER.dataCenter = {};
 
 //装载log记录器
 require('./core/log');
+MCSERVER.info('控制面板正在启动中...');
 
 //全局登陆记录器
 MCSERVER.login = {};
@@ -158,9 +159,13 @@ app.use('/public', express.static('./public'));
 
 // console 中间件挂载
 app.use((req, res, next) => {
-	if(req.originalUrl != "/cqhttp"){
-		console.log('[', req.protocol.green, req.method.cyan, ']', req.originalUrl);
-	}   
+    // 部分请求不必显示
+    if (req.originalUrl.indexOf('/api/') == -1 &&
+        req.originalUrl.indexOf('/fs/') == -1 &&
+        req.originalUrl.indexOf('/fs_auth/') == -1 &&
+        req.originalUrl.indexOf('/fs_auth/') == -1) {
+        // MCSERVER.log('[', req.method.cyan, ']', '[', req.ip, ']', req.originalUrl);
+    }
     if (MCSERVER.localProperty.is_allow_csrf) {
         res.header("Access-Control-Allow-Origin", "*");
         res.header('Access-Control-Allow-Methods', 'GET, POST');
@@ -309,8 +314,7 @@ process.on("uncaughtException", function (err) {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-    MCSERVER.infoLog('错误报告:');
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    MCSERVER.error('错误报告:', reason);
 });
 
 //初始化目录结构环境
@@ -342,7 +346,7 @@ process.on('unhandledRejection', (reason, p) => {
 })();
 
 //开始对 Oneline File Manager 模块进行必要的初始化
-MCSERVER.infoLog('Online_Fs', '初始化 Online_Fs 路由与中间件 ');
+MCSERVER.infoLog('OnlineFs', '正在初始化文件管理路由与中间件 ');
 
 //必须先进行登陆 且 fs API 请求必须为 Ajax 请求，得以保证跨域阻止
 app.use(['/fs/mkdir', '/fs/rm', '/fs/patse', '/fs/cp', '/fs/rename', '/fs/ls'], function (req, res, next) {
